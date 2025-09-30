@@ -2,85 +2,83 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Canvas + Global Database</title>
+  <title>Canvas + Supabase Global Storage</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-    canvas {
-      border: 1px solid black;
-      display: block;
-      margin-bottom: 10px;
-    }
-    #output {
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px dashed #333;
-      min-height: 50px;
-    }
+    body { font-family: Arial, sans-serif; }
+    canvas { border: 1px solid black; display: block; margin-bottom: 10px; }
   </style>
+  <!-- Supabase JS SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
 </head>
 <body>
-  <h2>Canvas dengan Database Global</h2>
+  <h2>Canvas dengan Global Storage (Supabase)</h2>
 
-  <!-- Canvas -->
-  <canvas id="myCanvas" width="400" height="200"></canvas>
+  <canvas id="myCanvas" width="500" height="400"></canvas>
 
-  <!-- Input + Button -->
   <input type="text" id="myInput" placeholder="Ketik sesuatu..." />
   <button onclick="submitText()">Submit</button>
 
-  <!-- Output -->
-  <div id="output"></div>
-
   <script>
-    // --- Database Global ---
-    const database = {
-      texts: [] // akan menyimpan semua input user
-    };
+    // --- Konfigurasi Supabase ---
+    const SUPABASE_URL = "https://amgamzesrbysxmkhanfi.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtZ2FtemVzcmJ5c3hta2hhbmZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyNDc2MDcsImV4cCI6MjA3NDgyMzYwN30.PS3tqJ8VE_1y8JLz4R62MocaWZiLL_gOaGSC_eFqcsw";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const canvas = document.getElementById("myCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Fungsi menggambar ke canvas
+    let messages = [];
+
+    // Gambar canvas
     function drawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.font = "20px Arial";
       ctx.fillStyle = "blue";
-      ctx.fillText("Ketik teks di bawah lalu klik Submit!", 20, 100);
+      ctx.fillText("Daftar pesan global:", 20, 30);
+
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "black";
+      messages.forEach((msg, i) => {
+        ctx.fillText(`${i + 1}. ${msg.text}`, 20, 60 + i * 25);
+      });
     }
 
-    // Fungsi submit
-    function submitText() {
+    // Ambil data dari Supabase
+    async function loadMessages() {
+      const { data, error } = await supabaseClient
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Error load:", error);
+      } else {
+        messages = data;
+        drawCanvas();
+      }
+    }
+
+    // Kirim data ke Supabase
+    async function submitText() {
       const input = document.getElementById("myInput");
       const text = input.value.trim();
 
       if (text !== "") {
-        // Simpan ke database global
-        database.texts.push(text);
+        const { error } = await supabaseClient
+          .from("messages")
+          .insert([{ text }]);
 
-        // Render ulang output
-        renderOutput();
-
-        // Kosongkan input
-        input.value = "";
+        if (error) {
+          console.error("Error insert:", error);
+        } else {
+          input.value = "";
+          loadMessages();
+        }
       }
     }
 
-    // Render output
-    function renderOutput() {
-      const outputDiv = document.getElementById("output");
-      outputDiv.innerHTML = ""; // reset
-
-      database.texts.forEach((t, i) => {
-        const p = document.createElement("p");
-        p.textContent = `${i + 1}. ${t}`;
-        outputDiv.appendChild(p);
-      });
-    }
-
-    // Gambar canvas awal
-    drawCanvas();
+    // Pertama kali load
+    loadMessages();
   </script>
 </body>
 </html>
