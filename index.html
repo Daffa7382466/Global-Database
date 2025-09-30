@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Canvas + Global Database</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 1px solid black;
+      display: block;
+      margin-bottom: 10px;
+    }
+    #output {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px dashed #333;
+      min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Canvas dengan Database Global</h2>
+
+  <!-- Canvas -->
+  <canvas id="myCanvas" width="400" height="200"></canvas>
+
+  <!-- Input + Button -->
+  <input type="text" id="myInput" placeholder="Ketik sesuatu..." />
+  <button onclick="submitText()">Submit</button>
+
+  <!-- Output -->
+  <div id="output"></div>
+
+  <script>
+    // --- Database Global ---
+    const database = {
+      texts: [] // akan menyimpan semua input user
+    };
+
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Fungsi menggambar ke canvas
+    function drawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "20px Arial";
+      ctx.fillStyle = "blue";
+      ctx.fillText("Ketik teks di bawah lalu klik Submit!", 20, 100);
+    }
+
+    // Fungsi submit
+    function submitText() {
+      const input = document.getElementById("myInput");
+      const text = input.value.trim();
+
+      if (text !== "") {
+        // Simpan ke database global
+        database.texts.push(text);
+
+        // Render ulang output
+        renderOutput();
+
+        // Kosongkan input
+        input.value = "";
+      }
+    }
+
+    // Render output
+    function renderOutput() {
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerHTML = ""; // reset
+
+      database.texts.forEach((t, i) => {
+        const p = document.createElement("p");
+        p.textContent = `${i + 1}. ${t}`;
+        outputDiv.appendChild(p);
+      });
+    }
+
+    // Gambar canvas awal
+    drawCanvas();
+  </script>
+</body>
+</html>
