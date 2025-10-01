@@ -64,9 +64,9 @@
       const text = input.value.trim();
 
       if (text !== "") {
-        const { error } = await supabaseClient
-          .from("messages")
-          .insert([{ text }]);
+      const { error } = await supabaseClient
+  .from("massage")   // ✅ sesuai nama tabel
+  .insert([{ text }]);
 
         if (error) {
           console.error("Error insert:", error);
